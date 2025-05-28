@@ -1,0 +1,55 @@
+#include <iostream>
+using namespace std;
+
+class MirrorTree {
+private:
+    struct Node {
+        int data;
+        Node* left;
+        Node* right;
+        Node(int val) : data(val), left(nullptr), right(nullptr) {}
+    };
+
+    // Helper to recursively mirror the tree
+    void mirror(Node* root) {
+        if (!root) return;
+        swap(root->left, root->right);
+        mirror(root->left);
+        mirror(root->right);
+    }
+
+    // Helper to print inorder traversal
+    void inorder(Node* root) {
+        if (!root) return;
+        inorder(root->left);
+        cout << root->data << " ";
+        inorder(root->right);
+    }
+
+public:
+    Node* root;
+
+    MirrorTree() : root(nullptr) {}
+
+    void insert(int val) {
+        root = insert(root, val);
+    }
+
+    Node* insert(Node* node, int val) {
+        if (!node) return new Node(val);
+        if (val < node->data)
+            node->left = insert(node->left, val);
+        else
+            node->right = insert(node->right, val);
+        return node;
+    }
+
+    void mirrorTree() {
+        mirror(root);
+    }
+
+    void inorderTraversal() {
+        inorder(root);
+        cout << endl;
+    }
+};
