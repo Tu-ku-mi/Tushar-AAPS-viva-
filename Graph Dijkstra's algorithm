@@ -1,0 +1,54 @@
+#include <vector>
+#include <queue>
+#include <limits>
+using namespace std;
+
+class Graph {
+public:
+    struct Edge {
+        int to;
+        int weight;
+        Edge(int t, int w) : to(t), weight(w) {}
+    };
+
+    int V; // Number of vertices
+    vector<vector<Edge>> adj;
+
+    Graph(int vertices) : V(vertices) {
+        adj.resize(V);
+    }
+
+    void addEdge(int u, int v, int w) {
+        adj[u].emplace_back(v, w);
+        // For undirected graph, also add:
+        // adj[v].emplace_back(u, w);
+    }
+
+    vector<int> dijkstra(int src) {
+        vector<int> dist(V, numeric_limits<int>::max());
+        dist[src] = 0;
+
+        // Min-heap: pairs of (distance, vertex)
+        priority_queue<pair<int,int>, vector<pair<int,int>>, greater<>> pq;
+        pq.emplace(0, src);
+
+        while (!pq.empty()) {
+            int currDist = pq.top().first;
+            int u = pq.top().second;
+            pq.pop();
+
+            if (currDist > dist[u]) continue;
+
+            for (auto &edge : adj[u]) {
+                int v = edge.to;
+                int weight = edge.weight;
+                if (dist[u] + weight < dist[v]) {
+                    dist[v] = dist[u] + weight;
+                    pq.emplace(dist[v], v);
+                }
+            }
+        }
+
+        return dist;
+    }
+};
