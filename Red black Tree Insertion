@@ -1,0 +1,120 @@
+#include <iostream>
+using namespace std;
+
+struct Node {
+    int data;
+    Node *left, *right, *parent;
+    bool color; // 0 -> Red, 1 -> Black
+};
+
+class RedBlackTree {
+private:
+    Node *root;
+
+    void rotateLeft(Node *&x) {
+        Node *y = x->right;
+        x->right = y->left;
+        if (y->left != nullptr)
+            y->left->parent = x;
+        y->parent = x->parent;
+        if (x->parent == nullptr)
+            root = y;
+        else if (x == x->parent->left)
+            x->parent->left = y;
+        else
+            x->parent->right = y;
+        y->left = x;
+        x->parent = y;
+    }
+
+    void rotateRight(Node *&x) {
+        Node *y = x->left;
+        x->left = y->right;
+        if (y->right != nullptr)
+            y->right->parent = x;
+        y->parent = x->parent;
+        if (x->parent == nullptr)
+            root = y;
+        else if (x == x->parent->right)
+            x->parent->right = y;
+        else
+            x->parent->left = y;
+        y->right = x;
+        x->parent = y;
+    }
+
+    void fixViolation(Node *&x) {
+        Node *uncle;
+        while (x != root && x->parent->color == 0) {
+            if (x->parent == x->parent->parent->left) {
+                uncle = x->parent->parent->right;
+                if (uncle != nullptr && uncle->color == 0) {
+                    x->parent->color = 1;
+                    uncle->color = 1;
+                    x->parent->parent->color = 0;
+                    x = x->parent->parent;
+                } else {
+                    if (x == x->parent->right) {
+                        x = x->parent;
+                        rotateLeft(x);
+                    }
+                    x->parent->color = 1;
+                    x->parent->parent->color = 0;
+                    rotateRight(x->parent->parent);
+                }
+            } else {
+                uncle = x->parent->parent->left;
+                if (uncle != nullptr && uncle->color == 0) {
+                    x->parent->color = 1;
+                    uncle->color = 1;
+                    x->parent->parent->color = 0;
+                    x = x->parent->parent;
+                } else {
+                    if (x == x->parent->left) {
+                        x = x->parent;
+                        rotateRight(x);
+                    }
+                    x->parent->color = 1;
+                    x->parent->parent->color = 0;
+                    rotateLeft(x->parent->parent);
+                }
+            }
+        }
+        root->color = 1;
+    }
+
+    void insertBST(Node *&root, Node *&pt) {
+        if (root == nullptr) {
+            root = pt;
+            return;
+        }
+        if (pt->data < root->data) {
+            insertBST(root->left, pt);
+            root->left->parent = root;
+        } else if (pt->data > root->data) {
+            insertBST(root->right, pt);
+            root->right->parent = root;
+        }
+    }
+
+public:
+    RedBlackTree() : root(nullptr) {}
+
+    void insert(int data) {
+        Node *pt = new Node{data, nullptr, nullptr, nullptr, 0};
+        insertBST(root, pt);
+        fixViolation(pt);
+    }
+
+    void inorderHelper(Node *root) {
+        if (root == nullptr)
+            return;
+        inorderHelper(root->left);
+        cout << root->data << " ";
+        inorderHelper(root->right);
+    }
+
+    void inorder() {
+        inorderHelper(root);
+    }
+};
