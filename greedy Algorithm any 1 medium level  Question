@@ -1,0 +1,34 @@
+#include <iostream>
+#include <vector>
+#include <algorithm>
+using namespace std;
+
+class ActivitySelector {
+public:
+    struct Activity {
+        int start;
+        int end;
+    };
+
+    static bool compare(Activity a, Activity b) {
+        return a.end < b.end;
+    }
+
+    int maxActivities(vector<Activity>& activities) {
+        if (activities.empty()) return 0;
+
+        sort(activities.begin(), activities.end(), compare);
+
+        int count = 1;
+        int lastEnd = activities[0].end;
+
+        for (int i = 1; i < activities.size(); ++i) {
+            if (activities[i].start >= lastEnd) {
+                count++;
+                lastEnd = activities[i].end;
+            }
+        }
+
+        return count;
+    }
+};
