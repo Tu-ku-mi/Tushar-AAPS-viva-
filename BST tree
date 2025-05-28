@@ -1,0 +1,82 @@
+#include <iostream>
+using namespace std;
+
+class BST {
+private:
+    struct Node {
+        int data;
+        Node *left, *right;
+        Node(int val) : data(val), left(nullptr), right(nullptr) {}
+    };
+
+    Node* root;
+
+    Node* insert(Node* node, int val) {
+        if (node == nullptr)
+            return new Node(val);
+        if (val < node->data)
+            node->left = insert(node->left, val);
+        else if (val > node->data)
+            node->right = insert(node->right, val);
+        return node;
+    }
+
+    bool search(Node* node, int key) {
+        if (!node) return false;
+        if (key == node->data) return true;
+        if (key < node->data) return search(node->left, key);
+        else return search(node->right, key);
+    }
+
+    Node* findMin(Node* node) {
+        while (node && node->left)
+            node = node->left;
+        return node;
+    }
+
+    Node* remove(Node* node, int key) {
+        if (!node) return nullptr;
+        if (key < node->data)
+            node->left = remove(node->left, key);
+        else if (key > node->data)
+            node->right = remove(node->right, key);
+        else {
+            if (!node->left)
+                return node->right;
+            else if (!node->right)
+                return node->left;
+
+            Node* temp = findMin(node->right);
+            node->data = temp->data;
+            node->right = remove(node->right, temp->data);
+        }
+        return node;
+    }
+
+    void inorder(Node* node) {
+        if (!node) return;
+        inorder(node->left);
+        cout << node->data << " ";
+        inorder(node->right);
+    }
+
+public:
+    BST() : root(nullptr) {}
+
+    void insert(int val) {
+        root = insert(root, val);
+    }
+
+    void remove(int val) {
+        root = remove(root, val);
+    }
+
+    bool search(int key) {
+        return search(root, key);
+    }
+
+    void inorderTraversal() {
+        inorder(root);
+        cout << endl;
+    }
+};
