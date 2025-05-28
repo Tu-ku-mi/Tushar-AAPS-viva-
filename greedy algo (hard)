@@ -1,0 +1,28 @@
+#include <vector>
+#include <algorithm>
+using namespace std;
+
+class TrainPlatformAllocator {
+public:
+    int findMinPlatforms(vector<int> &arrival, vector<int> &departure) {
+        sort(arrival.begin(), arrival.end());
+        sort(departure.begin(), departure.end());
+
+        int n = arrival.size();
+        int platforms = 0, maxPlatforms = 0;
+        int i = 0, j = 0;
+
+        while (i < n && j < n) {
+            if (arrival[i] <= departure[j]) {
+                platforms++;  // New train arrives
+                i++;
+            } else {
+                platforms--;  // A train departs
+                j++;
+            }
+            maxPlatforms = max(maxPlatforms, platforms);
+        }
+
+        return maxPlatforms;
+    }
+};
