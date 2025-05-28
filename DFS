@@ -1,0 +1,36 @@
+#include <iostream>
+#include <vector>
+using namespace std;
+
+class Graph {
+private:
+    int V; // Number of vertices
+    vector<vector<int>> adj; // Adjacency list
+
+    void DFSUtil(int v, vector<bool> &visited) {
+        visited[v] = true;
+        cout << v << " ";
+
+        for (int neighbor : adj[v]) {
+            if (!visited[neighbor]) {
+                DFSUtil(neighbor, visited);
+            }
+        }
+    }
+
+public:
+    Graph(int vertices) {
+        V = vertices;
+        adj.resize(V);
+    }
+
+    void addEdge(int u, int v) {
+        adj[u].push_back(v); // For directed graph
+        // adj[v].push_back(u); // Uncomment for undirected graph
+    }
+
+    void DFS(int start) {
+        vector<bool> visited(V, false);
+        DFSUtil(start, visited);
+    }
+};
