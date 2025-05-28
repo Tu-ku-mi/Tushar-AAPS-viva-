@@ -1,0 +1,100 @@
+#include <iostream>
+#include <string>
+#include <unordered_map>
+using namespace std;
+
+class RadixTree {
+private:
+    struct Node {
+        string edgeLabel;
+        unordered_map<char, Node*> children;
+        bool isEnd;
+
+        Node(string label = "") : edgeLabel(label), isEnd(false) {}
+    };
+
+    Node* root;
+
+    // Helper to find common prefix length
+    int commonPrefixLength(const string &a, const string &b) {
+        int len = 0;
+        while (len < a.size() && len < b.size() && a[len] == b[len])
+            ++len;
+        return len;
+    }
+
+public:
+    RadixTree() {
+        root = new Node();
+    }
+
+    void insert(const string &word) {
+        Node* current = root;
+        string toInsert = word;
+
+        while (!toInsert.empty()) {
+            char firstChar = toInsert[0];
+            if (current->children.find(firstChar) == current->children.end()) {
+                // No edge starting with this char, create new node
+                current->children[firstChar] = new Node(toInsert);
+                current->children[firstChar]->isEnd = true;
+                return;
+            }
+
+            Node* child = current->children[firstChar];
+            string &label = child->edgeLabel;
+            int commonLen = commonPrefixLength(label, toInsert);
+
+            if (commonLen == label.size()) {
+                // Full match of edge label, go deeper
+                toInsert = toInsert.substr(commonLen);
+                current = child;
+            } else {
+                // Partial match, split edge
+                Node* splitNode = new Node(label.substr(0, commonLen));
+                // Reassign child with remaining label
+                child->edgeLabel = label.substr(commonLen);
+                splitNode->children[child->edgeLabel[0]] = child;
+                splitNode->isEnd = false;
+
+                // Add new node for leftover of toInsert
+                string leftover = toInsert.substr(commonLen);
+                if (!leftover.empty()) {
+                    Node* newNode = new Node(leftover);
+                    newNode->isEnd = true;
+                    splitNode->children[leftover[0]] = newNode;
+                } else {
+                    splitNode->isEnd = true;
+                }
+
+                // Replace child with splitNode
+                current->children[firstChar] = splitNode;
+                return;
+            }
+        }
+
+        // If loop ends means exact word already inserted
+        current->isEnd = true;
+    }
+
+    bool search(const string &word) {
+        Node* current = root;
+        string toFind = word;
+
+        while (!toFind.empty()) {
+            char firstChar = toFind[0];
+            if (current->children.find(firstChar) == current->children.end())
+                return false;
+
+            Node* child = current->children[firstChar];
+            string &label = child->edgeLabel;
+
+            if (toFind.compare(0, label.size(), label) != 0)
+                return false;
+
+            toFind = toFind.substr(label.size());
+            current = child;
+        }
+        return current->isEnd;
+    }
+};
