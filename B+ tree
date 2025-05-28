@@ -1,0 +1,115 @@
+#include <iostream>
+#include <vector>
+#include <algorithm>
+using namespace std;
+
+const int M = 3; // Order of the B+ tree (max keys = M-1)
+
+class BPlusTree {
+private:
+    struct Node {
+        bool isLeaf;
+        vector<int> keys;
+        vector<Node*> children;
+        Node* next; // Only used for leaf nodes
+
+        Node(bool leaf) : isLeaf(leaf), next(nullptr) {}
+    };
+
+    Node* root;
+
+    void insertInternal(int key, Node* child, Node* parent) {
+        if (parent == nullptr) {
+            Node* newRoot = new Node(false);
+            newRoot->keys.push_back(key);
+            newRoot->children.push_back(root);
+            newRoot->children.push_back(child);
+            root = newRoot;
+            return;
+        }
+
+        auto it = upper_bound(parent->keys.begin(), parent->keys.end(), key);
+        int idx = it - parent->keys.begin();
+        parent->keys.insert(it, key);
+        parent->children.insert(parent->children.begin() + idx + 1, child);
+
+        if (parent->keys.size() >= M) {
+            // Split internal node
+            int mid = parent->keys.size() / 2;
+            Node* newInternal = new Node(false);
+            newInternal->keys.assign(parent->keys.begin() + mid + 1, parent->keys.end());
+            newInternal->children.assign(parent->children.begin() + mid + 1, parent->children.end());
+            int upKey = parent->keys[mid];
+
+            parent->keys.resize(mid);
+            parent->children.resize(mid + 1);
+
+            insertInternal(upKey, newInternal, findParent(root, parent));
+        }
+    }
+
+    Node* findParent(Node* current, Node* child) {
+        if (current == nullptr || current->isLeaf) return nullptr;
+        for (Node* c : current->children) {
+            if (c == child) return current;
+            Node* res = findParent(c, child);
+            if (res) return res;
+        }
+        return nullptr;
+    }
+
+public:
+    BPlusTree() {
+        root = new Node(true);
+    }
+
+    void insert(int key) {
+        Node* leaf = root;
+
+        // Find correct leaf
+        while (!leaf->isLeaf) {
+            int i = upper_bound(leaf->keys.begin(), leaf->keys.end(), key) - leaf->keys.begin();
+            leaf = leaf->children[i];
+        }
+
+        // Insert into leaf
+        auto it = upper_bound(leaf->keys.begin(), leaf->keys.end(), key);
+        leaf->keys.insert(it, key);
+
+        if (leaf->keys.size() >= M) {
+            // Split leaf
+            int mid = (M + 1) / 2;
+            Node* newLeaf = new Node(true);
+            newLeaf->keys.assign(leaf->keys.begin() + mid, leaf->keys.end());
+            leaf->keys.resize(mid);
+
+            newLeaf->next = leaf->next;
+            leaf->next = newLeaf;
+
+            insertInternal(newLeaf->keys[0], newLeaf, findParent(root, leaf));
+        }
+    }
+
+    bool search(int key) {
+        Node* current = root;
+        while (!current->isLeaf) {
+            int i = upper_bound(current->keys.begin(), current->keys.end(), key) - current->keys.begin();
+            current = current->children[i];
+        }
+
+        return binary_search(current->keys.begin(), current->keys.end(), key);
+    }
+
+    void printLeaves() {
+        Node* current = root;
+        while (!current->isLeaf)
+            current = current->children[0];
+
+        while (current) {
+            for (int key : current->keys)
+                cout << key << " ";
+            current = current->next;
+        }
+        cout << endl;
+    }
+};
